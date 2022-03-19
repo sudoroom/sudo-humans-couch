@@ -1,0 +1,431 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Sudo Humans",
+    "description": "Sudo Room Registration Server",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "tags": [
+    {
+      "name": "users",
+      "description": "User CRUD"
+    }
+  ],
+  "paths": {
+    "/users/{userId}": {
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "description": "User ID",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update an existing user",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "x-document-rev",
+            "in": "header",
+            "required": true,
+            "description": "document revision id required for updating or deleting an existing document",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "A create user request object.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouchDocumentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BadRequestError"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Document Update Conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete a user",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "x-document-rev",
+            "in": "header",
+            "required": true,
+            "description": "document revision id required for updating or deleting an existing document",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouchDocumentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BadRequestError"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Document Update Conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get User by ID",
+        "description": "",
+        "operationId": "getUserByID",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Get all Users.",
+        "description": "",
+        "operationId": "getAllUsers",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "summary": "Create a User",
+        "description": "",
+        "operationId": "createUser",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouchDocumentResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": [
+          "_id",
+          "username",
+          "fullName",
+          "pronouns",
+          "visibility",
+          "collectives",
+          "email",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 16,
+            "example": "sudoer"
+          },
+          "fullName": {
+            "type": "string",
+            "maxLength": 30,
+            "example": "Sudo Human"
+          },
+          "pronouns": {
+            "type": "string",
+            "enum": [
+              "He/Him",
+              "She/Her",
+              "They/Them"
+            ],
+            "default": "They/Them"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "everyone",
+              "accounts",
+              "members"
+            ],
+            "default": "accounts"
+          },
+          "collectives": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": [
+                "Sudo Room"
+              ]
+            }
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "fullName",
+          "email",
+          "password",
+          "pronouns",
+          "visibility",
+          "collectives"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 16
+          },
+          "fullName": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "pronouns": {
+            "type": "string",
+            "enum": [
+              "He/Him",
+              "She/Her",
+              "They/Them"
+            ],
+            "default": "They/Them"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "everyone",
+              "accounts",
+              "members"
+            ],
+            "default": "accounts"
+          },
+          "collectives": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Sudo Room",
+                "Counter Culture Labs"
+              ],
+              "default": "Sudo Room"
+            }
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6
+          }
+        }
+      },
+      "CouchDocumentResponse": {
+        "type": "object",
+        "required": [
+          "ok",
+          "id",
+          "rev"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rev": {
+            "type": "string"
+          }
+        }
+      },
+      "BadRequestError": {
+        "type": "object",
+        "required": ["msg", "param", "location"],
+        "properties": {
+          "msg": {
+            "type": "string",
+            "example": "Username is required."
+          },
+          "param": {
+            "type": "string",
+            "example": "username"
+          },
+          "location": {
+            "type": "string",
+            "example": "body"
+          }
+        }
+      },
+      "ConflictError": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Document update conflict."
+          }
+        }
+      },
+      "NotFoundError": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "The document you requested was not found."
+          }
+        }
+      }
+    }
+  }
+}
