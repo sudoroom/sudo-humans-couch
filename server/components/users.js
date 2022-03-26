@@ -1,10 +1,35 @@
 const config = require('../config');
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const shasum = require('shasum');
 const moment = require('moment');
 const { collectives } = require('../config');
+
+function authenticateUser(req, res, next) {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, config.jwt.secret);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(403).json({ error: "not authorized" });
+  }
+};
+
+function authenticateAdmin(req, res, next) {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, config.jwt.secret);
+    if (decoded.username !== config.users.default.username) {
+      res.status(403).json({ error: "not authorized" });
+    }
+    next();
+  } catch (err) {
+    res.status(403).json({ error: "not authorized" });
+  }
+};
 
 module.exports = async (couch) => {
   const dbs = await couch.db.list();
@@ -110,7 +135,7 @@ module.exports = async (couch) => {
   });
 
   /** Get All Users */
-  router.get('/', async (req, res) => {
+  router.get('/', authenticateAdmin, async (req, res) => {
     try {
       // const { rows } = await users.list({ include_docs: true });
       const query = {
@@ -140,7 +165,7 @@ module.exports = async (couch) => {
   });
 
   /** Get User By ID */
-  router.get('/:userId', async (req, res) => {
+  router.get('/:userId', authenticateAdmin, async (req, res) => {
     try {
       const doc = await users.get(req.params.userId);
       res.json(doc);
@@ -156,7 +181,7 @@ module.exports = async (couch) => {
   });
 
   /** Update User By ID */
-  router.put('/:userId', async (req, res) => {
+  router.put('/:userId', authenticateAdmin, async (req, res) => {
     try {
       if (!req.headers["x-document-rev"]) {
         const error = new Error("rev header required");
@@ -176,7 +201,7 @@ module.exports = async (couch) => {
   });
 
   /** Delete User By ID */
-  router.delete('/:userId', async (req, res) => {
+  router.delete('/:userId', authenticateAdmin, async (req, res) => {
     try {
       if (!req.headers["x-document-rev"]) {
         const error = new Error("rev header required");

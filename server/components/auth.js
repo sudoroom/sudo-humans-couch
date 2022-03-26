@@ -9,7 +9,7 @@ module.exports = (app, couch) => {
   const users = couch.db.use('users');
 
   /** Authenticate to receive JWT */
-  app.post('/authenticate', 
+  app.post('/api/v1/authenticate', 
     check('username').exists().withMessage('Name is required.'),
     check('password').exists().withMessage('Password is required.'),
     async (req, res) => {
@@ -24,7 +24,6 @@ module.exports = (app, couch) => {
           'username': { '$eq': username }
         }
       }).catch(err => null);
-
       if (!docs.length) {
         res.sendStatus(403);
       }
@@ -35,21 +34,7 @@ module.exports = (app, couch) => {
       if( user.hash !== tryHash ) {
         res.sendStatus(403)
       }
-      const userData = await users.find({
-        selector: {
-          'username': { '$eq': username },
-          'fields': [
-            '_id',
-            'username',
-            'fullName',
-            'pronouns',
-            'visibility',
-            'collectives',
-            'email'
-          ]
-        }
-      });
-      const token = jwt.sign(userData, config.jwt.secret, { expiresIn: config.jwt.expires });
+      const token = jwt.sign({...user, ...{ hash: undefined, salt: undefined }}, config.jwt.secret, { expiresIn: config.jwt.expires });
       res.json({ token });
     }
   );
